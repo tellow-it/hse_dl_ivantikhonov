@@ -106,15 +106,12 @@ def mean_average_precision(
     Returns:
         float: mAP value across all classes given a specific IoU threshold
     """
-    # List to store average precision for each class
     average_precisions = []
 
-    # Iterate over all classes
     for c in range(num_classes):
         detections = [box for box in pred_boxes if box[1] == c]
         ground_truths = [box for box in true_boxes if box[1] == c]
 
-        # Dictionary to count the number of ground truths per image
         amount_bboxes = {}
         for gt in ground_truths:
             img_idx = gt[0]
@@ -122,18 +119,15 @@ def mean_average_precision(
                 amount_bboxes[img_idx] = 0
             amount_bboxes[img_idx] += 1
 
-        # Store which ground truth boxes were already used for evaluation
         for img_idx in amount_bboxes:
             amount_bboxes[img_idx] = torch.zeros(amount_bboxes[img_idx])
 
-        # Sort detections by confidence score
         detections.sort(key=lambda x: x[2], reverse=True)
 
-        TP = torch.zeros(len(detections))  # True positives
-        FP = torch.zeros(len(detections))  # False positives
+        TP = torch.zeros(len(detections))
+        FP = torch.zeros(len(detections))
         total_true_bboxes = len(ground_truths)
 
-        # Iterate through all detections
         for detection_idx, detection in enumerate(detections):
             img_ground_truths = [
                 gt for gt in ground_truths if gt[0] == detection[0]
@@ -142,7 +136,6 @@ def mean_average_precision(
             best_iou = 0
             best_gt_idx = -1
 
-            # Find the ground truth with the highest IoU
             for idx, gt in enumerate(img_ground_truths):
                 iou = intersection_over_union(
                     torch.tensor(detection[3:]),
@@ -166,21 +159,16 @@ def mean_average_precision(
                 # False positive, IoU is below threshold
                 FP[detection_idx] = 1
 
-        # Compute cumulative sums of TP and FP
         TP_cumsum = torch.cumsum(TP, dim=0)
         FP_cumsum = torch.cumsum(FP, dim=0)
 
-        # Compute precision and recall
         precisions = TP_cumsum / (TP_cumsum + FP_cumsum + 1e-6)
         recalls = TP_cumsum / (total_true_bboxes + 1e-6)
 
-        # Add a (0, 1) point for recall and precision for completeness
         precisions = torch.cat((torch.tensor([1]), precisions))
         recalls = torch.cat((torch.tensor([0]), recalls))
 
-        # Calculate average precision (AP) using the trapezoidal rule
         average_precision = torch.trapz(precisions, recalls)
         average_precisions.append(average_precision)
 
-    # Compute mean average precision (mAP)
     return sum(average_precisions) / len(average_precisions)

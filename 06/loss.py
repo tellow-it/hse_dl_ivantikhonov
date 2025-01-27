@@ -42,7 +42,6 @@ class YoloLoss(nn.Module):
 
         # Take the box with highest IoU out of the two prediction
         # Note that bestbox will be indices of 0, 1 for which bbox was best
-
         iou_maxes, bestbox = torch.max(ious, dim=0)
         exists_box = target[..., self.C].unsqueeze(3)  # in paper this is Iobj_i
 
@@ -50,9 +49,8 @@ class YoloLoss(nn.Module):
         #   FOR BOX COORDINATES    #
         # ======================== #
 
-        # Set boxes with no object in them to 0. We only take out one of the two 
+        # Set boxes with no object in them to 0. We only take out one of the two
         # predictions, which is the one with highest Iou calculated previously.
-        print(exists_box)
         box_predictions = exists_box * (
             (
                 bestbox * predictions[..., self.C + 6:self.C + 10]
