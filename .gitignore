@@ -2,7 +2,10 @@
 # Edit at https://www.gitignore.io/?templates=linux,macos,python,pycharm,windows,visualstudiocode
 .env
 .venv
-
+*png
+VOC*
+train_data
+*pth
 *__pycache__*
 .jupyter
 .ipynb_checkpoints
